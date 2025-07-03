@@ -3,8 +3,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Pickleball Drills</title>
+  <title>Pickleball Drill Flashcards</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -17,6 +18,13 @@
       margin: 0;
       cursor: pointer;
       padding: 1rem;
+      text-align: center;
+    }
+    #intro {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      padding: 0 1rem;
+      max-width: 600px;
     }
     #card {
       background: white;
@@ -25,6 +33,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       text-align: center;
       max-width: 90%;
+      display: none;
     }
     #card h2 {
       margin-bottom: 1rem;
@@ -36,26 +45,56 @@
     }
     h1 {
       font-size: 2rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
     }
   </style>
 </head>
 <body>
 
   <h1>Pickleball Drills</h1>
-  <div id="card" style="display:none;">
+  <div id="intro">
+    These drills are focused on <strong>consistency, accuracy, and intent</strong>.<br>
+    All drills are <strong>COOPERATIVE</strong>! Help yourself and other player(s) improve!<br><br>
+    <em>Never walk on the court without preparing your body for the physical activity you're about to do.</em>
+  </div>
+
+  <div id="card">
     <h2 id="drillName"></h2>
     <p id="drillDesc"></p>
   </div>
 
   <script>
-    const drills = [{'drill name': 'Dink Rally', 'drill description': 'Practice soft dinks over the net with a partner, aiming for consistency and control.'}, {'drill name': 'Third Shot Drop', 'drill description': 'Practice dropping the third shot from the baseline into the kitchen area.'}, {'drill name': 'Volleys at the Net', 'drill description': 'Stand at the kitchen line and volley back and forth quickly to improve reflexes.'}, {'drill name': 'Lob Retrieval', 'drill description': 'Practice chasing down lobs and resetting the point with a controlled shot.'}, {'drill name': 'Serve Placement', 'drill description': 'Work on placing serves deep and near the sideline to pressure your opponent.'}, {'drill name': 'Return of Serve', 'drill description': 'Focus on returning serves deep and with accuracy to prevent the serving team from advancing quickly.'}, {'drill name': 'Crosscourt Dinks', 'drill description': 'Dink crosscourt diagonally to work on precision and footwork.'}, {'drill name': 'Wall Rally', 'drill description': 'Hit the ball against a wall continuously to improve timing and accuracy.'}, {'drill name': 'Footwork Ladder', 'drill description': 'Use a ladder drill to improve lateral movement and quickness.'}, {'drill name': 'Shadow Swinging', 'drill description': 'Mimic strokes and movements without a ball to improve form and muscle memory.'}];
+    const csvUrl = "https://raw.githubusercontent.com/thevibedrop/pickleball-drills/refs/heads/main/pickleball_drills.csv";
+    let drills = [];
 
-    document.body.addEventListener('click', function(e) {
+    fetch(csvUrl)
+      .then(response => response.text())
+      .then(csv => {
+        Papa.parse(csv, {
+          header: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            drills = results.data;
+          }
+        });
+      });
+
+    function showRandomDrill() {
+      if (drills.length === 0) return;
       const random = drills[Math.floor(Math.random() * drills.length)];
-      document.getElementById('drillName').innerText = random['drill name'];
-      document.getElementById('drillDesc').innerText = random['drill description'];
+      document.getElementById('drillName').innerText = random['Drill name'];
+      document.getElementById('drillDesc').innerText = random['Description'];
       document.getElementById('card').style.display = 'block';
+    }
+
+    let firstClick = true;
+    document.body.addEventListener('click', () => {
+      if (drills.length === 0) return;
+      if (firstClick) {
+        firstClick = false;
+        document.getElementById('intro').style.display = 'none';
+      }
+      showRandomDrill();
     });
   </script>
 
