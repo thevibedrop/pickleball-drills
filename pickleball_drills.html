@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pickleball Drills</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f4f4f4;
+      height: 100vh;
+      margin: 0;
+      cursor: pointer;
+      padding: 1rem;
+    }
+    #card {
+      background: white;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 90%;
+    }
+    #card h2 {
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+    #card p {
+      font-size: 1.5rem;
+      line-height: 1.6;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Pickleball Drills</h1>
+  <div id="card" style="display:none;">
+    <h2 id="drillName"></h2>
+    <p id="drillDesc"></p>
+  </div>
+
+  <script>
+    const drills = [{'drill name': 'Dink Rally', 'drill description': 'Practice soft dinks over the net with a partner, aiming for consistency and control.'}, {'drill name': 'Third Shot Drop', 'drill description': 'Practice dropping the third shot from the baseline into the kitchen area.'}, {'drill name': 'Volleys at the Net', 'drill description': 'Stand at the kitchen line and volley back and forth quickly to improve reflexes.'}, {'drill name': 'Lob Retrieval', 'drill description': 'Practice chasing down lobs and resetting the point with a controlled shot.'}, {'drill name': 'Serve Placement', 'drill description': 'Work on placing serves deep and near the sideline to pressure your opponent.'}, {'drill name': 'Return of Serve', 'drill description': 'Focus on returning serves deep and with accuracy to prevent the serving team from advancing quickly.'}, {'drill name': 'Crosscourt Dinks', 'drill description': 'Dink crosscourt diagonally to work on precision and footwork.'}, {'drill name': 'Wall Rally', 'drill description': 'Hit the ball against a wall continuously to improve timing and accuracy.'}, {'drill name': 'Footwork Ladder', 'drill description': 'Use a ladder drill to improve lateral movement and quickness.'}, {'drill name': 'Shadow Swinging', 'drill description': 'Mimic strokes and movements without a ball to improve form and muscle memory.'}];
+
+    document.body.addEventListener('click', function(e) {
+      const random = drills[Math.floor(Math.random() * drills.length)];
+      document.getElementById('drillName').innerText = random['drill name'];
+      document.getElementById('drillDesc').innerText = random['drill description'];
+      document.getElementById('card').style.display = 'block';
+    });
+  </script>
+
+</body>
+</html>
