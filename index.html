@@ -16,15 +16,34 @@
       background: #f4f4f4;
       height: 100vh;
       margin: 0;
-      cursor: pointer;
       padding: 1rem;
       text-align: center;
     }
-    #intro {
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.3rem;
+    }
+    .metadata {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 1.5rem;
+    }
+    #intro, #playerInput {
       font-size: 1.2rem;
-      margin-bottom: 2rem;
-      padding: 0 1rem;
       max-width: 600px;
+    }
+    #playerInput {
+      display: none;
+    }
+    #playerButtons button {
+      font-size: 1.2rem;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem;
+      border-radius: 5px;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
     }
     #card {
       background: white;
@@ -43,19 +62,27 @@
       font-size: 1.5rem;
       line-height: 1.6;
     }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
   </style>
 </head>
 <body>
 
   <h1>Pickleball Drills</h1>
+  <div class="metadata" id="metadata"></div>
+
   <div id="intro">
     These drills are focused on <strong>consistency, accuracy, and intent</strong>.<br>
     All drills are <strong>COOPERATIVE</strong>! Help yourself and other player(s) improve!<br><br>
     <em>Never walk on the court without preparing your body for the physical activity you're about to do.</em>
+  </div>
+
+  <div id="playerInput">
+    <p>How many players do you have?</p>
+    <div id="playerButtons">
+      <button onclick="setPlayers(1)">1</button>
+      <button onclick="setPlayers(2)">2</button>
+      <button onclick="setPlayers(3)">3</button>
+      <button onclick="setPlayers(4)">4</button>
+    </div>
   </div>
 
   <div id="card">
@@ -66,6 +93,9 @@
   <script>
     const csvUrl = "https://raw.githubusercontent.com/thevibedrop/pickleball-drills/refs/heads/main/pickleball_drills.csv";
     let drills = [];
+    let playerCount = 0;
+    let introShown = true;
+    let playerSelected = false;
 
     fetch(csvUrl)
       .then(response => response.text())
@@ -79,22 +109,36 @@
         });
       });
 
+    function setPlayers(count) {
+      playerCount = count;
+      playerSelected = true;
+      document.getElementById('playerInput').style.display = 'none';
+      showRandomDrill();
+    }
+
     function showRandomDrill() {
-      if (drills.length === 0) return;
-      const random = drills[Math.floor(Math.random() * drills.length)];
+      const eligibleDrills = drills.filter(d => parseInt(d['Num_players']) === playerCount);
+      if (eligibleDrills.length === 0) {
+        alert("No drills available for exactly " + playerCount + " player(s).");
+        return;
+      }
+      const random = eligibleDrills[Math.floor(Math.random() * eligibleDrills.length)];
       document.getElementById('drillName').innerText = random['Drill name'];
       document.getElementById('drillDesc').innerText = random['Description'];
+      document.getElementById('metadata').innerText = `Players: ${random['Num_players']} | Goal: ${random['Goal']}`;
       document.getElementById('card').style.display = 'block';
     }
 
-    let firstClick = true;
-    document.body.addEventListener('click', () => {
-      if (drills.length === 0) return;
-      if (firstClick) {
-        firstClick = false;
+    document.body.addEventListener('click', function () {
+      if (introShown) {
         document.getElementById('intro').style.display = 'none';
+        document.getElementById('playerInput').style.display = 'block';
+        introShown = false;
+        return;
       }
-      showRandomDrill();
+      if (playerSelected) {
+        showRandomDrill();
+      }
     });
   </script>
 
