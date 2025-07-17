@@ -9,32 +9,38 @@
   <style>
     body {
       font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: #f4f4f4;
-      height: 100vh;
-      margin: 0;
-      padding: 1rem;
       text-align: center;
     }
+
     h1 {
       font-size: 2rem;
-      margin-bottom: 0.3rem;
+      margin: 0.5rem;
     }
+
     .metadata {
       font-size: 0.9rem;
       color: #555;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
+
     #intro, #playerInput {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       max-width: 600px;
+      padding: 1rem;
     }
+
     #playerInput {
       display: none;
     }
+
     #playerButtons button {
       font-size: 1.2rem;
       padding: 0.5rem 1rem;
@@ -45,22 +51,108 @@
       color: white;
       cursor: pointer;
     }
+
     #card {
+      display: none;
       background: white;
       border-radius: 10px;
       padding: 2rem;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      text-align: center;
       max-width: 90%;
-      display: none;
+      margin-top: 1rem;
     }
+
     #card h2 {
       margin-bottom: 1rem;
-      font-size: 2rem;
+      font-size: 1.8rem;
     }
+
     #card p {
-      font-size: 1.5rem;
-      line-height: 1.6;
+      font-size: 1.4rem;
+      line-height: 1.5;
+    }
+
+    #addBtn {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #sidebarToggle {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      background: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      z-index: 999;
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 280px;
+      height: 100%;
+      background: white;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.3);
+      padding: 1rem;
+      overflow-y: auto;
+      transition: left 0.3s ease-in-out;
+      z-index: 998;
+      text-align: left;
+    }
+
+    #sidebar.visible {
+      left: 0;
+    }
+
+    .sidebar-drill {
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.5rem;
+    }
+
+    .sidebar-drill-title {
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .sidebar-drill-desc {
+      display: none;
+      margin-top: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .sidebar-drill button {
+      background: red;
+      color: white;
+      border: none;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #clearAllBtn {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      background: #555;
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -88,6 +180,15 @@
   <div id="card">
     <h2 id="drillName"></h2>
     <p id="drillDesc"></p>
+    <button id="addBtn" onclick="addToSession()">+ Add to Session</button>
+  </div>
+
+  <button id="sidebarToggle" onclick="toggleSidebar()">🗂️</button>
+
+  <div id="sidebar">
+    <h3>Your Session (max 6)</h3>
+    <div id="sessionList"></div>
+    <button id="clearAllBtn" onclick="clearSession()">Clear All</button>
   </div>
 
   <script>
@@ -96,6 +197,8 @@
     let playerCount = 0;
     let introShown = true;
     let playerSelected = false;
+    let currentDrill = null;
+    let sessionDrills = [];
 
     fetch(csvUrl)
       .then(response => response.text())
@@ -122,21 +225,70 @@
         alert("No drills available for exactly " + playerCount + " player(s).");
         return;
       }
-      const random = eligibleDrills[Math.floor(Math.random() * eligibleDrills.length)];
-      document.getElementById('drillName').innerText = random['Drill name'];
-      document.getElementById('drillDesc').innerText = random['Description'];
-      document.getElementById('metadata').innerText = `Players: ${random['Num_players']} | Goal: ${random['Goal']}`;
+      currentDrill = eligibleDrills[Math.floor(Math.random() * eligibleDrills.length)];
+      document.getElementById('drillName').innerText = currentDrill['Drill name'];
+      document.getElementById('drillDesc').innerText = currentDrill['Description'];
+      document.getElementById('metadata').innerText = `Players: ${currentDrill['Num_players']} | Goal: ${currentDrill['Goal']}`;
+
+      const alreadyAdded = sessionDrills.some(d => d['Drill name'] === currentDrill['Drill name']);
+      document.getElementById('addBtn').innerText = alreadyAdded ? 'Added!' : '+ Add to Session';
+
       document.getElementById('card').style.display = 'block';
     }
 
-    document.body.addEventListener('click', function () {
+    function addToSession() {
+      if (!currentDrill || sessionDrills.length >= 6) return;
+      const alreadyAdded = sessionDrills.some(d => d['Drill name'] === currentDrill['Drill name']);
+      if (!alreadyAdded) {
+        sessionDrills.push(currentDrill);
+        updateSessionList();
+        document.getElementById('addBtn').innerText = 'Added!';
+      }
+    }
+
+    function updateSessionList() {
+      const container = document.getElementById('sessionList');
+      container.innerHTML = '';
+      sessionDrills.forEach((d, i) => {
+        const div = document.createElement('div');
+        div.className = 'sidebar-drill';
+        div.innerHTML = `
+          <div class="sidebar-drill-title" onclick="toggleDescription(this)">
+            ${d['Drill name']}
+          </div>
+          <div class="sidebar-drill-desc">${d['Description']}</div>
+          <button onclick="removeDrill(${i})">❌ Remove</button>`;
+        container.appendChild(div);
+      });
+    }
+
+    function toggleDescription(titleEl) {
+      const desc = titleEl.nextElementSibling;
+      desc.style.display = desc.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function removeDrill(index) {
+      sessionDrills.splice(index, 1);
+      updateSessionList();
+    }
+
+    function clearSession() {
+      sessionDrills = [];
+      updateSessionList();
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('visible');
+    }
+
+    document.body.addEventListener('click', function (e) {
       if (introShown) {
         document.getElementById('intro').style.display = 'none';
         document.getElementById('playerInput').style.display = 'block';
         introShown = false;
         return;
       }
-      if (playerSelected) {
+      if (playerSelected && !e.target.closest("#sidebar") && e.target.id !== 'sidebarToggle' && !e.target.closest('#addBtn')) {
         showRandomDrill();
       }
     });
